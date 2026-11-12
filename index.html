@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#087c52">
+<meta name="description" content="Future Bazar - মুদি, সবজি, ফল ও পরিচ্ছন্নতা সামগ্রী অনলাইনে অর্ডার করুন।">
+<title>Future Bazar | Online Shopping</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: "Noto Sans Bengali", "Kalpurush", "Nirmala UI", "Segoe UI", Arial, sans-serif;
+  background: #f5f7f6;
+  color: #202b26;
+  line-height: 1.5;
+}
+body.lock { overflow: hidden; }
+button, input, select, textarea { font-family: inherit; font-size: inherit; }
+:focus-visible { outline: 3px solid #f5b301; outline-offset: 2px; }
+
+header {
+  background: #087c52;
+  color: white;
+  padding: 14px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 2px 8px #00000025;
+}
+.logo { font-size: 25px; font-weight: bold; }
+.logo span { color: #d9ff8b; }
+.cart {
+  background: white;
+  color: #087c52;
+  padding: 10px 17px;
+  border-radius: 8px;
+  font-weight: bold;
+  border: 0;
+  cursor: pointer;
+}
+.cart:hover { background: #eaf7f0; }
+
+.hero {
+  background: linear-gradient(120deg,#087c52,#19a879);
+  color: white;
+  padding: 48px 6%;
+  text-align: center;
+}
+.hero h1 { font-size: 34px; margin-bottom: 12px; }
+.hero p { margin-bottom: 22px; }
+.search {
+  width: 90%;
+  max-width: 500px;
+  padding: 14px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.container { padding: 25px 5%; }
+h2 { margin-bottom: 18px; }
+.categories {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  margin-bottom: 20px;
+  padding-bottom: 6px;
+}
+.categories button {
+  border: 1px solid #ddd;
+  background: white;
+  padding: 11px 18px;
+  border-radius: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.categories button.active {
+  background: #087c52;
+  color: white;
+  border-color: #087c52;
+}
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.toolbar h2 { margin: 0; }
+.toolbar .right { display: flex; align-items: center; gap: 10px; }
+.toolbar .count { color: #5b6b63; font-size: 14px; }
+.sort {
+  padding: 9px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+}
+
+.products {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(145px,1fr));
+  gap: 15px;
+}
+.product {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 2px 9px #0000000c;
+  display: flex;
+  flex-direction: column;
+}
+.product .emoji {
+  font-size: 48px;
+  text-align: center;
+  padding: 15px;
+  background: #f0f8f3;
+  border-radius: 9px;
+  margin-bottom: 12px;
+}
+.product h3 { font-size: 16px; margin-bottom: 8px; }
+.price {
+  color: #087c52;
+  font-size: 19px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  margin-top: auto;
+}
+.price small { font-size: 13px; font-weight: normal; color: #5b6b63; }
+.add-btn {
+  background: #087c52;
+  color: white;
+  border: 0;
+  width: 100%;
+  padding: 11px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.add-btn:hover { background: #066a45; }
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid #087c52;
+  border-radius: 7px;
+  overflow: hidden;
+}
+.stepper button {
+  background: #087c52;
+  color: white;
+  border: 0;
+  width: 42px;
+  padding: 9px 0;
+  font-size: 18px;
+  cursor: pointer;
+}
+.stepper button:disabled { background: #9bc7b6; cursor: not-allowed; }
+.stepper span { font-weight: bold; }
+.empty {
+  text-align: center;
+  padding: 25px;
+  grid-column: 1/-1;
+  color: #5b6b63;
+}
+
+/* কার্ট ড্রয়ার */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: #00000066;
+  opacity: 0;
+  visibility: hidden;
+  transition: .25s;
+  z-index: 90;
+}
+.overlay.show { opacity: 1; visibility: visible; }
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(420px,100%);
+  background: white;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  visibility: hidden;
+  transition: transform .28s, visibility .28s;
+}
+.drawer.open { transform: none; visibility: visible; }
+.drawer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  background: #087c52;
+  color: white;
+}
+.drawer-head h2 { margin: 0; font-size: 19px; }
+.close-btn {
+  background: transparent;
+  border: 0;
+  color: white;
+  font-size: 26px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 8px;
+}
+.drawer-body { flex: 1; overflow-y: auto; padding: 16px 18px; }
+.cart-empty { text-align: center; color: #5b6b63; padding: 40px 10px; }
+.cart-empty .big { font-size: 56px; }
+.cart-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+.cart-item .ico { font-size: 30px; }
+.cart-item .info { flex: 1; min-width: 0; }
+.cart-item .info b { display: block; }
+.cart-item .info small { color: #5b6b63; }
+.cart-item .line { font-weight: bold; color: #087c52; white-space: nowrap; }
+.mini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.mini button {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #087c52;
+  background: white;
+  color: #087c52;
+  cursor: pointer;
+  font-size: 16px;
+}
+.mini button:disabled { opacity: .4; cursor: not-allowed; }
+.mini .remove { width: auto; padding: 0 8px; border-color: #d33; color: #d33; font-size: 13px; margin-left: 6px; }
+.summary { margin-top: 16px; font-size: 15px; }
+.summary div { display: flex; justify-content: space-between; padding: 4px 0; }
+.summary .total { font-weight: bold; font-size: 18px; border-top: 2px dashed #ddd; margin-top: 6px; padding-top: 10px; }
+.hint {
+  background: #fff8e1;
+  color: #7a5b00;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-top: 10px;
+}
+.hint.ok { background: #e6f6ee; color: #066a45; }
+form#checkout { margin-top: 18px; }
+form#checkout h3 { margin-bottom: 10px; font-size: 16px; }
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 14px; margin-bottom: 4px; }
+.field input, .field textarea {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #ccd5d0;
+  border-radius: 8px;
+}
+.field textarea { resize: vertical; min-height: 70px; }
+.field.invalid input, .field.invalid textarea { border-color: #d33; }
+.err { color: #d33; font-size: 12.5px; margin-top: 3px; display: none; }
+.field.invalid .err { display: block; }
+.pay { font-size: 14px; color: #5b6b63; margin-bottom: 12px; }
+.primary {
+  width: 100%;
+  background: #087c52;
+  color: white;
+  border: 0;
+  padding: 14px;
+  border-radius: 9px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.primary:hover { background: #066a45; }
+.link-btn {
+  background: none;
+  border: 0;
+  color: #d33;
+  cursor: pointer;
+  font-size: 13px;
+  margin-top: 10px;
+  text-decoration: underline;
+}
+.success { text-align: center; padding: 30px 10px; }
+.success .big { font-size: 60px; }
+.success h3 { margin: 10px 0; color: #087c52; }
+.success .oid {
+  display: inline-block;
+  background: #f0f8f3;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-weight: bold;
+  margin: 10px 0 16px;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%,30px);
+  background: #123d30;
+  color: white;
+  padding: 11px 18px;
+  border-radius: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: .25s;
+  z-index: 120;
+  max-width: 90%;
+  text-align: center;
+  font-size: 14px;
+}
+.toast.show { opacity: 1; transform: translate(-50%,0); }
+
+footer {
+  background: #123d30;
+  color: white;
+  text-align: center;
+  padding: 25px;
+  margin-top: 35px;
+}
+@media(max-width:480px) {
+  .hero h1 { font-size: 26px; }
+  .container { padding: 20px 4%; }
+  .products { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">FUTURE <span>BAZAR</span></div>
+  <button class="cart" id="cartBtn" aria-label="কার্ট খুলুন">🛒 কার্ট: <span id="cartCount">০</span></button>
+</header>
+
+<section class="hero">
+  <h1>আপনার প্রতিদিনের বাজার</h1>
+  <p>বিশ্বস্ত কেনাকাটা, সহজেই আপনার হাতের মুঠোয়।</p>
+  <input class="search" id="search" type="search"
+    placeholder="পণ্যের নাম লিখে খুঁজুন..." aria-label="পণ্য খুঁজুন">
+</section>
+
+<main class="container">
+  <h2>পণ্যের ক্যাটাগরি</h2>
+  <div class="categories" id="categories">
+    <button class="active" data-category="সব">সব পণ্য</button>
+    <button data-category="মুদি">মুদি</button>
+    <button data-category="সবজি">সবজি</button>
+    <button data-category="ফল">ফল</button>
+    <button data-category="পরিচ্ছন্নতা">পরিচ্ছন্নতা</button>
+  </div>
+
+  <div class="toolbar">
+    <h2>জনপ্রিয় পণ্য</h2>
+    <div class="right">
+      <span class="count" id="resultCount"></span>
+      <select class="sort" id="sort" aria-label="সাজান">
+        <option value="default">ডিফল্ট</option>
+        <option value="low">দাম: কম থেকে বেশি</option>
+        <option value="high">দাম: বেশি থেকে কম</option>
+        <option value="name">নাম অনুযায়ী</option>
+      </select>
+    </div>
+  </div>
+  <div class="products" id="products"></div>
+</main>
+
+<footer>
+  <h3>FUTURE BAZAR</h3>
+  <p>আপনার বিশ্বস্ত অনলাইন বাজার</p>
+  <p>© <span id="year">2026</span> Future Bazar. All Rights Reserved.</p>
+</footer>
+
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" aria-hidden="true">
+  <div class="drawer-head">
+    <h2 id="drawerTitle">🛒 আপনার কার্ট</h2>
+    <button class="close-btn" id="closeBtn" aria-label="বন্ধ করুন">×</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const items = [
+  {id:1,name:"চাল",category:"মুদি",price:70,unit:"কেজি",icon:"🍚"},
+  {id:2,name:"আলু",category:"সবজি",price:30,unit:"কেজি",icon:"🥔"},
+  {id:3,name:"পেঁয়াজ",category:"সবজি",price:60,unit:"কেজি",icon:"🧅"},
+  {id:4,name:"সয়াবিন তেল",category:"মুদি",price:175,unit:"লিটার",icon:"🛢️"},
+  {id:5,name:"ডিম",category:"মুদি",price:48,unit:"হালি",icon:"🥚"},
+  {id:6,name:"আপেল",category:"ফল",price:220,unit:"কেজি",icon:"🍎"},
+  {id:7,name:"কলা",category:"ফল",price:80,unit:"ডজন",icon:"🍌"},
+  {id:8,name:"শ্যাম্পু",category:"পরিচ্ছন্নতা",price:120,unit:"বোতল",icon:"🧴"},
+  {id:9,name:"মসুর ডাল",category:"মুদি",price:135,unit:"কেজি",icon:"🫘"},
+  {id:10,name:"টমেটো",category:"সবজি",price:50,unit:"কেজি",icon:"🍅"},
+  {id:11,name:"কমলা",category:"ফল",price:180,unit:"কেজি",icon:"🍊"},
+  {id:12,name:"সাবান",category:"পরিচ্ছন্নতা",price:40,unit:"পিস",icon:"🧼"}
+];
+
+const MAX_QTY = 20;          // প্রতিটি পণ্যের সর্বোচ্চ পরিমাণ
+const FREE_DELIVERY = 500;   // এর বেশি হলে ডেলিভারি ফ্রি
+const DELIVERY_FEE = 40;
+const STORAGE_KEY = "futureBazarCart";
+
+let cart = loadCart();       // { id: qty }
+let selectedCategory = "সব";
+let lastFocus = null;
+let orderDone = null;
+
+const $ = id => document.getElementById(id);
+const bn = n => Number(n).toLocaleString("bn-BD");
+const taka = n => "৳" + bn(n);
+const esc = s => String(s).replace(/[&<>"']/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const toEnDigits = s => s.replace(/[০-৯]/g, d => "০১২৩৪৫৬৭৮৯".indexOf(d));
+const findItem = id => items.find(i => i.id === id);
+
+/* ---------- সংরক্ষণ ---------- */
+function loadCart() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    const clean = {};
+    for (const key in raw) {
+      const id = Number(key), qty = Math.floor(Number(raw[key]));
+      if (items.some(i => i.id === id) && qty > 0) clean[id] = Math.min(qty, MAX_QTY);
+    }
+    return clean;
+  } catch (e) { return {}; }
+}
+function saveCart() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(cart)); } catch (e) {}
+}
+
+/* ---------- হিসাব ---------- */
+const cartCount = () => Object.values(cart).reduce((s, q) => s + q, 0);
+const subtotal = () => Object.keys(cart).reduce((s, id) => s + findItem(+id).price * cart[id], 0);
+const delivery = sub => (sub === 0 || sub >= FREE_DELIVERY) ? 0 : DELIVERY_FEE;
+
+/* ---------- পণ্য তালিকা ---------- */
+function renderProducts() {
+  const q = $("search").value.trim().toLowerCase();
+  const sort = $("sort").value;
+
+  let list = items.filter(item =>
+    (selectedCategory === "সব" || item.category === selectedCategory) &&
+    item.name.toLowerCase().includes(q)
+  );
+
+  if (sort === "low") list.sort((a, b) => a.price - b.price);
+  else if (sort === "high") list.sort((a, b) => b.price - a.price);
+  else if (sort === "name") list.sort((a, b) => a.name.localeCompare(b.name, "bn"));
+
+  $("resultCount").textContent = bn(list.length) + "টি পণ্য";
+
+  const area = $("products");
+  if (!list.length) {
+    area.innerHTML = '<p class="empty">কোনো পণ্য পাওয়া যায়নি।</p>';
+    return;
+  }
+
+  area.innerHTML = list.map(item => {
+    const qty = cart[item.id] || 0;
+    const control = qty
+      ? `<div class="stepper">
+           <button data-action="dec" data-id="${item.id}" aria-label="${esc(item.name)} কমান">−</button>
+           <span>${bn(qty)}</span>
+           <button data-action="inc" data-id="${item.id}" aria-label="${esc(item.name)} বাড়ান" ${qty >= MAX_QTY ? "disabled" : ""}>+</button>
+         </div>`
+      : `<button class="add-btn" data-action="add" data-id="${item.id}">+ কার্টে যোগ করুন</button>`;
+    return `
+      <div class="product">
+        <div class="emoji" aria-hidden="true">${item.icon}</div>
+        <h3>${esc(item.name)}</h3>
+        <div class="price">${taka(item.price)} <small>/ ${esc(item.unit)}</small></div>
+        ${control}
+      </div>`;
+  }).join("");
+}
+
+/* ---------- কার্ট পরিবর্তন ---------- */
+function changeQty(id, delta) {
+  const next = (cart[id] || 0) + delta;
+  if (next <= 0) delete cart[id];
+  else if (next > MAX_QTY) { showToast("একসাথে সর্বোচ্চ " + bn(MAX_QTY) + "টি নেওয়া যাবে"); return; }
+  else cart[id] = next;
+
+  saveCart();
+  updateAll();
+  if (delta > 0 && next === 1) showToast(findItem(id).name + " কার্টে যোগ হয়েছে");
+}
+function updateAll() {
+  $("cartCount").textContent = bn(cartCount());
+  renderProducts();
+  if ($("drawer").classList.contains("open")) renderDrawer();
+}
+
+/* ---------- কার্ট ড্রয়ার ---------- */
+function renderDrawer() {
+  const body = $("drawerBody");
+
+  if (orderDone) {
+    body.innerHTML = `
+      <div class="success">
+        <div class="big">✅</div>
+        <h3>অর্ডার সম্পন্ন হয়েছে!</h3>
+        <p>ধন্যবাদ, ${esc(orderDone.name)}। আমরা শীঘ্রই ${esc(orderDone.phone)} নম্বরে যোগাযোগ করব।</p>
+        <div class="oid">অর্ডার নম্বর: ${esc(orderDone.id)}</div>
+        <p>মোট বিল: <b>${taka(orderDone.total)}</b> (ক্যাশ অন ডেলিভারি)</p>
+        <br><button class="primary" id="doneBtn">কেনাকাটা চালিয়ে যান</button>
+      </div>`;
+    return;
+  }
+
+  const ids = Object.keys(cart);
+  if (!ids.length) {
+    body.innerHTML = `
+      <div class="cart-empty">
+        <div class="big">🛒</div>
+        <p>আপনার কার্ট খালি।</p><br>
+        <button class="primary" id="doneBtn">পণ্য দেখুন</button>
+      </div>`;
+    return;
+  }
+
+  const sub = subtotal(), fee = delivery(sub), total = sub + fee;
+  const hint = sub >= FREE_DELIVERY
+    ? '<div class="hint ok">🎉 আপনি ফ্রি ডেলিভারি পাচ্ছেন!</div>'
+    : `<div class="hint">আরও ${taka(FREE_DELIVERY - sub)} কেনাকাটা করলে ডেলিভারি ফ্রি।</div>`;
+
+  const lines = ids.map(id => {
+    const it = findItem(+id), qty = cart[id];
+    return `
+      <div class="cart-item">
+        <div class="ico" aria-hidden="true">${it.icon}</div>
+        <div class="info">
+          <b>${esc(it.name)}</b>
+          <small>${taka(it.price)} / ${esc(it.unit)}</small>
+          <div class="mini">
+            <button data-action="dec" data-id="${it.id}" aria-label="কমান">−</button>
+            <b>${bn(qty)}</b>
+            <button data-action="inc" data-id="${it.id}" aria-label="বাড়ান" ${qty >= MAX_QTY ? "disabled" : ""}>+</button>
+            <button class="remove" data-action="remove" data-id="${it.id}">মুছুন</button>
+          </div>
+        </div>
+        <div class="line">${taka(it.price * qty)}</div>
+      </div>`;
+  }).join("");
+
+  body.innerHTML = `
+    ${lines}
+    <div class="summary">
+      <div><span>সাবটোটাল</span><span>${taka(sub)}</span></div>
+      <div><span>ডেলিভারি চার্জ</span><span>${fee ? taka(fee) : "ফ্রি"}</span></div>
+      <div class="total"><span>মোট</span><span>${taka(total)}</span></div>
+    </div>
+    ${hint}
+    <form id="checkout" novalidate>
+      <h3>ডেলিভারির তথ্য</h3>
+      <div class="field">
+        <label for="fName">আপনার নাম</label>
+        <input id="fName" autocomplete="name" maxlength="60">
+        <div class="err">নাম লিখুন (কমপক্ষে ২ অক্ষর)।</div>
+      </div>
+      <div class="field">
+        <label for="fPhone">মোবাইল নম্বর</label>
+        <input id="fPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="01XXXXXXXXX" maxlength="18">
+        <div class="err">সঠিক বাংলাদেশি মোবাইল নম্বর দিন (যেমন 01712345678)।</div>
+      </div>
+      <div class="field">
+        <label for="fAddress">পূর্ণ ঠিকানা</label>
+        <textarea id="fAddress" autocomplete="street-address" maxlength="250"></textarea>
+        <div class="err">ঠিকানা লিখুন (কমপক্ষে ১০ অক্ষর)।</div>
+      </div>
+      <p class="pay">💵 পেমেন্ট: ক্যাশ অন ডেলিভারি</p>
+      <button type="submit" class="primary">অর্ডার নিশ্চিত করুন • ${taka(total)}</button>
+      <div style="text-align:center"><button type="button" class="link-btn" data-action="clear">কার্ট খালি করুন</button></div>
+    </form>`;
+}
+
+function openDrawer() {
+  lastFocus = document.activeElement;
+  renderDrawer();
+  $("drawer").classList.add("open");
+  $("drawer").setAttribute("aria-hidden", "false");
+  $("overlay").classList.add("show");
+  document.body.classList.add("lock");
+  $("closeBtn").focus();
+}
+function closeDrawer() {
+  $("drawer").classList.remove("open");
+  $("drawer").setAttribute("aria-hidden", "true");
+  $("overlay").classList.remove("show");
+  document.body.classList.remove("lock");
+  orderDone = null;
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+
+/* ---------- অর্ডার ---------- */
+function setInvalid(input, bad) {
+  input.parentElement.classList.toggle("invalid", bad);
+  return !bad;
+}
+function submitOrder(e) {
+  e.preventDefault();
+  if (!Object.keys(cart).length) return;
+
+  const nameEl = $("fName"), phoneEl = $("fPhone"), addrEl = $("fAddress");
+  const name = nameEl.value.trim();
+  const phone = toEnDigits(phoneEl.value).replace(/[\s-]/g, "");
+  const address = addrEl.value.trim();
+
+  const okName = setInvalid(nameEl, name.length < 2);
+  const okPhone = setInvalid(phoneEl, !/^(?:\+?88)?01[3-9]\d{8}$/.test(phone));
+  const okAddr = setInvalid(addrEl, address.length < 10);
+
+  if (!(okName && okPhone && okAddr)) {
+    (!okName ? nameEl : !okPhone ? phoneEl : addrEl).focus();
+    return;
+  }
+
+  const sub = subtotal();
+  orderDone = {
+    id: "FB-" + Date.now().toString().slice(-6),
+    name, phone: phoneEl.value.trim(), address,
+    total: sub + delivery(sub)
+  };
+  // বাস্তব সাইটে এখানে অর্ডার সার্ভারে (API) পাঠাতে হবে।
+  cart = {};
+  saveCart();
+  updateAll();
+  renderDrawer();
+}
+
+/* ---------- টোস্ট ---------- */
+let toastTimer;
+function showToast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+/* ---------- ইভেন্ট ---------- */
+function handleAction(e) {
+  const btn = e.target.closest("[data-action]");
+  if (!btn) return;
+  const id = Number(btn.dataset.id);
+  switch (btn.dataset.action) {
+    case "add": case "inc": changeQty(id, 1); break;
+    case "dec": changeQty(id, -1); break;
+    case "remove": delete cart[id]; saveCart(); updateAll(); break;
+    case "clear":
+      if (confirm("কার্টের সব পণ্য মুছে ফেলবেন?")) { cart = {}; saveCart(); updateAll(); }
+      break;
+  }
+}
+$("products").addEventListener("click", handleAction);
+$("drawerBody").addEventListener("click", e => {
+  if (e.target.id === "doneBtn") { closeDrawer(); return; }
+  handleAction(e);
+});
+$("drawerBody").addEventListener("submit", e => {
+  if (e.target.id === "checkout") submitOrder(e);
+});
+$("cartBtn").addEventListener("click", openDrawer);
+$("closeBtn").addEventListener("click", closeDrawer);
+$("overlay").addEventListener("click", closeDrawer);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && $("drawer").classList.contains("open")) closeDrawer();
+});
+
+$("search").addEventListener("input", renderProducts);
+$("sort").addEventListener("change", renderProducts);
+$("categories").addEventListener("click", e => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  selectedCategory = btn.dataset.category;
+  document.querySelectorAll(".categories button")
+    .forEach(b => b.classList.toggle("active", b === btn));
+  renderProducts();
+});
+
+// অন্য ট্যাবে কার্ট বদলালে এখানেও আপডেট হবে
+window.addEventListener("storage", e => {
+  if (e.key === STORAGE_KEY) { cart = loadCart(); updateAll(); }
+});
+
+$("year").textContent = new Date().getFullYear();
+updateAll();
+</script>
+
+</body>
+</html>
